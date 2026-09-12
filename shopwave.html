@@ -1,0 +1,865 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ShopWave — Build your shop</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg: #100F1B;
+    --surface: #1A1828;
+    --surface-2: #221F35;
+    --border: #322E4C;
+    --violet: #7C5CFF;
+    --violet-bright: #9B85FF;
+    --yellow: #FFD23F;
+    --green: #00D9A3;
+    --red: #FF5C7A;
+    --text: #F3F1FA;
+    --muted: #9691B0;
+    --radius-lg: 24px;
+    --radius-md: 16px;
+    --radius-sm: 10px;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  html,body{height:100%;}
+  body{
+    background: radial-gradient(circle at 10% 0%, #1c1a30 0%, var(--bg) 45%);
+    color: var(--text);
+    font-family: 'Inter', sans-serif;
+    min-height:100vh;
+    overflow-x:hidden;
+  }
+  h1,h2,h3,h4{ font-family:'Space Grotesk', sans-serif; font-weight:700; letter-spacing:-0.02em; }
+  button{ font-family:inherit; cursor:pointer; border:none; }
+  input, textarea, select{ font-family:inherit; }
+  a{ color:inherit; }
+  ::selection{ background: var(--violet); color:white; }
+
+  .hidden{ display:none !important; }
+
+  /* ---------- Buttons ---------- */
+  .btn{
+    display:inline-flex; align-items:center; justify-content:center; gap:8px;
+    padding: 13px 24px;
+    border-radius: 999px;
+    font-weight:600; font-size:15px;
+    transition: transform .15s ease, box-shadow .15s ease, background .15s ease;
+    white-space:nowrap;
+  }
+  .btn:active{ transform: scale(0.96); }
+  .btn-primary{
+    background: linear-gradient(135deg, var(--violet), #5E42E0);
+    color:white;
+    box-shadow: 0 6px 20px rgba(124,92,255,.35);
+  }
+  .btn-primary:hover{ box-shadow: 0 8px 26px rgba(124,92,255,.5); transform: translateY(-2px); }
+  .btn-secondary{
+    background: var(--surface-2);
+    color: var(--text);
+    border: 1px solid var(--border);
+  }
+  .btn-secondary:hover{ background:#2A2743; }
+  .btn-ghost{ background:transparent; color:var(--muted); padding:10px 16px; }
+  .btn-ghost:hover{ color:var(--text); }
+  .btn-danger{ background: rgba(255,92,122,.12); color: var(--red); }
+  .btn-danger:hover{ background: rgba(255,92,122,.22); }
+  .btn-block{ width:100%; }
+  .btn-sm{ padding: 8px 16px; font-size:13px; border-radius:999px; }
+
+  /* ---------- Onboarding ---------- */
+  #onboarding{
+    min-height:100vh; display:flex; align-items:center; justify-content:center;
+    padding: 24px;
+  }
+  .onboard-card{
+    width:100%; max-width: 460px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 44px 40px;
+    position:relative;
+    overflow:hidden;
+  }
+  .onboard-card::before{
+    content:"";
+    position:absolute; top:-80px; right:-80px;
+    width:220px; height:220px; border-radius:50%;
+    background: radial-gradient(circle, rgba(124,92,255,.35), transparent 70%);
+  }
+  .brand-mark{
+    display:inline-flex; align-items:center; gap:10px;
+    font-family:'Space Grotesk'; font-weight:700; font-size:20px;
+    margin-bottom: 28px;
+  }
+  .brand-mark .dot{
+    width:14px; height:14px; border-radius:5px;
+    background: linear-gradient(135deg, var(--yellow), var(--violet));
+    display:inline-block;
+  }
+  .onboard-card h1{ font-size: 30px; line-height:1.15; margin-bottom:10px; }
+  .onboard-card p.sub{ color: var(--muted); margin-bottom: 30px; font-size:15px; }
+  .field{ margin-bottom: 18px; }
+  .field label{ display:block; font-size:13px; color: var(--muted); margin-bottom:7px; font-weight:600; }
+  .field input, .field textarea, .field select{
+    width:100%;
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 13px 16px;
+    border-radius: var(--radius-sm);
+    font-size:15px;
+    outline:none;
+    transition: border-color .15s ease, background .15s ease;
+  }
+  .field input:focus, .field textarea:focus, .field select:focus{
+    border-color: var(--violet);
+    background:#242138;
+  }
+  .field textarea{ resize:vertical; min-height:70px; }
+  .emoji-picker{ display:flex; flex-wrap:wrap; gap:8px; margin-top:4px; }
+  .emoji-choice{
+    width:44px; height:44px; border-radius: var(--radius-sm);
+    background: var(--surface-2); border:2px solid transparent;
+    display:flex; align-items:center; justify-content:center; font-size:20px;
+  }
+  .emoji-choice.active{ border-color: var(--violet); background:#2A2743; }
+
+  /* ---------- App shell ---------- */
+  #app{ display:flex; min-height:100vh; }
+  .sidebar{
+    width: 240px; flex-shrink:0;
+    background: var(--surface);
+    border-right: 1px solid var(--border);
+    padding: 28px 18px;
+    display:flex; flex-direction:column;
+    position:sticky; top:0; height:100vh;
+  }
+  .sidebar .shop-id{
+    display:flex; align-items:center; gap:10px;
+    padding: 8px 10px 24px 10px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 18px;
+  }
+  .shop-avatar{
+    width:38px; height:38px; border-radius: 12px;
+    background: linear-gradient(135deg, var(--violet), #4C36B5);
+    display:flex; align-items:center; justify-content:center; font-size:18px;
+    flex-shrink:0;
+  }
+  .shop-id .name{ font-family:'Space Grotesk'; font-weight:700; font-size:15px; line-height:1.2; }
+  .shop-id .role{ font-size:12px; color: var(--muted); }
+  nav.nav-links{ display:flex; flex-direction:column; gap:4px; }
+  .nav-link{
+    display:flex; align-items:center; gap:12px;
+    padding: 11px 14px; border-radius: var(--radius-sm);
+    color: var(--muted); font-weight:600; font-size:14px;
+    background:transparent; width:100%; text-align:left;
+    transition: background .15s ease, color .15s ease;
+  }
+  .nav-link .ic{ font-size:17px; width:20px; text-align:center; }
+  .nav-link:hover{ background: var(--surface-2); color:var(--text); }
+  .nav-link.active{ background: linear-gradient(135deg, rgba(124,92,255,.18), rgba(124,92,255,.06)); color: var(--violet-bright); }
+  .sidebar-footer{ margin-top:auto; padding-top:18px; border-top:1px solid var(--border); }
+
+  main.view{ flex:1; padding: 36px 44px; max-width: 1160px; }
+  .view-header{ display:flex; align-items:flex-end; justify-content:space-between; margin-bottom:28px; flex-wrap:wrap; gap:14px;}
+  .view-header h2{ font-size:28px; }
+  .view-header p{ color:var(--muted); margin-top:4px; font-size:14.5px; }
+
+  /* ---------- Stat cards ---------- */
+  .stat-grid{ display:grid; grid-template-columns: 1.4fr 1fr 1fr 1fr; gap:18px; margin-bottom:32px; }
+  @media (max-width: 900px){ .stat-grid{ grid-template-columns: 1fr 1fr; } }
+  .stat-card{
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 24px;
+    position:relative; overflow:hidden;
+  }
+  .stat-card.hero{
+    background: linear-gradient(135deg, #7C5CFF 0%, #5433D6 100%);
+    border:none;
+    color:white;
+  }
+  .stat-card.hero::after{
+    content:"";
+    position:absolute; bottom:-60px; right:-30px;
+    width:180px; height:180px; border-radius:50%;
+    background: rgba(255,255,255,.08);
+  }
+  .stat-label{ font-size:13px; font-weight:600; color: var(--muted); margin-bottom:10px; }
+  .stat-card.hero .stat-label{ color: rgba(255,255,255,.8); }
+  .stat-value{ font-family:'Space Grotesk'; font-size:34px; font-weight:700; letter-spacing:-0.02em; }
+  .stat-sub{ font-size:12.5px; color: var(--muted); margin-top:8px; }
+  .stat-card.hero .stat-sub{ color: rgba(255,255,255,.75); }
+
+  /* ---------- Panels ---------- */
+  .panel{
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 26px;
+    margin-bottom: 24px;
+  }
+  .panel-head{ display:flex; align-items:center; justify-content:space-between; margin-bottom:18px; }
+  .panel-head h3{ font-size:17px; }
+
+  .order-row{
+    display:flex; align-items:center; justify-content:space-between;
+    padding: 14px 4px; border-bottom: 1px solid var(--border);
+    font-size:14px;
+  }
+  .order-row:last-child{ border-bottom:none; }
+  .order-row .oid{ color: var(--muted); font-size:12.5px; }
+  .order-row .amt{ font-weight:700; color: var(--green); font-family:'Space Grotesk'; }
+  .empty-state{ text-align:center; padding: 40px 20px; color: var(--muted); }
+  .empty-state .emoji{ font-size:38px; margin-bottom:12px; display:block; }
+
+  /* ---------- Products grid ---------- */
+  .product-toolbar{ display:flex; justify-content:space-between; align-items:center; margin-bottom:22px; gap:14px; flex-wrap:wrap;}
+  .products-grid{ display:grid; grid-template-columns: repeat(auto-fill, minmax(230px,1fr)); gap:18px; }
+  .product-card{
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    overflow:hidden;
+    display:flex; flex-direction:column;
+    transition: transform .15s ease, border-color .15s ease;
+  }
+  .product-card:hover{ transform: translateY(-4px); border-color: var(--violet); }
+  .product-thumb{
+    height:120px; display:flex; align-items:center; justify-content:center; font-size:46px;
+  }
+  .product-body{ padding: 16px 18px 20px; display:flex; flex-direction:column; gap:6px; flex:1; }
+  .product-body h4{ font-size:15.5px; }
+  .product-price{ font-family:'Space Grotesk'; font-weight:700; color: var(--yellow); font-size:18px; }
+  .product-stock{ font-size:12.5px; color: var(--muted); }
+  .product-actions{ display:flex; gap:8px; margin-top:10px; }
+
+  /* ---------- Storefront ---------- */
+  .storefront-hero{
+    border-radius: var(--radius-lg);
+    padding: 46px 40px;
+    margin-bottom: 30px;
+    position:relative; overflow:hidden;
+    display:flex; align-items:center; justify-content:space-between; gap:20px; flex-wrap:wrap;
+  }
+  .storefront-hero h1{ font-size:36px; margin-bottom:8px; color:#0F0E17;}
+  .storefront-hero p{ color:#2b2740; font-size:15px; max-width:420px; }
+  .storefront-grid{ display:grid; grid-template-columns: repeat(auto-fill, minmax(220px,1fr)); gap:20px; }
+  .storefront-card{
+    background: var(--surface); border:1px solid var(--border); border-radius: var(--radius-lg);
+    overflow:hidden; display:flex; flex-direction:column;
+  }
+  .storefront-card .product-thumb{ height:140px; }
+  .storefront-card .add-btn{ margin-top:auto; }
+
+  /* Cart */
+  .cart-fab{
+    position:fixed; bottom:28px; right:28px;
+    background: linear-gradient(135deg, var(--violet), #5433D6);
+    color:white; width:64px; height:64px; border-radius:50%;
+    display:flex; align-items:center; justify-content:center; font-size:24px;
+    box-shadow: 0 10px 30px rgba(124,92,255,.5);
+    z-index: 40;
+    transition: transform .15s ease;
+  }
+  .cart-fab:hover{ transform: scale(1.08); }
+  .cart-count{
+    position:absolute; top:-4px; right:-4px;
+    background: var(--red); color:white; font-size:11px; font-weight:700;
+    width:22px; height:22px; border-radius:50%; display:flex; align-items:center; justify-content:center;
+  }
+
+  /* ---------- Modal ---------- */
+  .modal-overlay{
+    position:fixed; inset:0; background: rgba(10,9,18,.7);
+    backdrop-filter: blur(3px);
+    display:flex; align-items:center; justify-content:center;
+    z-index:100; padding:20px;
+  }
+  .modal{
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    width:100%; max-width:440px;
+    padding: 30px;
+    max-height:88vh; overflow-y:auto;
+  }
+  .modal-head{ display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; }
+  .modal-head h3{ font-size:19px; }
+  .close-x{ background:var(--surface-2); width:32px; height:32px; border-radius:50%; display:flex; align-items:center; justify-content:center; color:var(--muted); font-size:16px; }
+  .close-x:hover{ color:var(--text); }
+
+  .cart-line{ display:flex; align-items:center; gap:12px; padding:12px 0; border-bottom:1px solid var(--border); }
+  .cart-line .ci-thumb{ width:44px; height:44px; border-radius:10px; background:var(--surface-2); display:flex; align-items:center; justify-content:center; font-size:20px; flex-shrink:0;}
+  .cart-line .ci-info{ flex:1; }
+  .cart-line .ci-info .n{ font-size:14px; font-weight:600; }
+  .cart-line .ci-info .p{ font-size:12.5px; color:var(--muted); }
+  .qty-ctrl{ display:flex; align-items:center; gap:8px; }
+  .qty-ctrl button{ width:26px; height:26px; border-radius:50%; background:var(--surface-2); color:var(--text); font-size:14px; }
+  .cart-total-row{ display:flex; justify-content:space-between; padding:18px 0 6px; font-family:'Space Grotesk'; font-weight:700; font-size:18px; }
+
+  /* Toast */
+  .toast{
+    position:fixed; top:24px; left:50%; transform: translateX(-50%) translateY(-20px);
+    background: var(--surface-2); border:1px solid var(--border);
+    padding: 13px 22px; border-radius: 999px; font-size:14px; font-weight:600;
+    display:flex; align-items:center; gap:10px;
+    opacity:0; pointer-events:none; transition: all .25s ease;
+    z-index: 200;
+  }
+  .toast.show{ opacity:1; transform: translateX(-50%) translateY(0); }
+  .toast .tick{ color: var(--green); font-size:16px; }
+
+  .badge{ display:inline-block; padding:4px 10px; border-radius:999px; font-size:11px; font-weight:700; background: rgba(0,217,163,.15); color: var(--green); }
+
+  @media (max-width: 760px){
+    #app{ flex-direction:column; }
+    .sidebar{ width:100%; height:auto; position:relative; flex-direction:row; overflow-x:auto; padding:14px; }
+    .sidebar .shop-id{ display:none; }
+    nav.nav-links{ flex-direction:row; }
+    .sidebar-footer{ display:none; }
+    main.view{ padding: 24px 18px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ================= ONBOARDING ================= -->
+<div id="onboarding">
+  <div class="onboard-card">
+    <div class="brand-mark"><span class="dot"></span>ShopWave</div>
+    <h1>Launch your shop in one step</h1>
+    <p class="sub">Give it a name, pick an icon, and your dashboard is ready. You can add products right after.</p>
+    <div class="field">
+      <label for="shopName">Shop name</label>
+      <input id="shopName" type="text" placeholder="e.g. Maple &amp; Co." maxlength="40">
+    </div>
+    <div class="field">
+      <label for="ownerName">Your name</label>
+      <input id="ownerName" type="text" placeholder="e.g. Jordan Lee" maxlength="40">
+    </div>
+    <div class="field">
+      <label>Shop icon</label>
+      <div class="emoji-picker" id="emojiPicker"></div>
+    </div>
+    <button class="btn btn-primary btn-block" id="createShopBtn" style="margin-top:8px;">Create my shop</button>
+  </div>
+</div>
+
+<!-- ================= APP ================= -->
+<div id="app" class="hidden">
+  <aside class="sidebar">
+    <div class="shop-id">
+      <div class="shop-avatar" id="sbAvatar">🛍️</div>
+      <div>
+        <div class="name" id="sbShopName">My Shop</div>
+        <div class="role" id="sbOwnerName">Owner</div>
+      </div>
+    </div>
+    <nav class="nav-links">
+      <button class="nav-link active" data-view="dashboard"><span class="ic">📊</span>Dashboard</button>
+      <button class="nav-link" data-view="products"><span class="ic">🏷️</span>Products</button>
+      <button class="nav-link" data-view="orders"><span class="ic">🧾</span>Orders</button>
+      <button class="nav-link" data-view="storefront"><span class="ic">🌐</span>Storefront</button>
+    </nav>
+    <div class="sidebar-footer">
+      <button class="btn btn-ghost" id="resetShopBtn" style="width:100%; justify-content:flex-start;">↺ Reset shop</button>
+    </div>
+  </aside>
+
+  <!-- DASHBOARD -->
+  <main class="view" id="view-dashboard">
+    <div class="view-header">
+      <div>
+        <h2>Dashboard</h2>
+        <p>Here's how <span id="dashShopName">your shop</span> is doing.</p>
+      </div>
+      <button class="btn btn-primary" data-view="products">+ Add product</button>
+    </div>
+    <div class="stat-grid">
+      <div class="stat-card hero">
+        <div class="stat-label">Total earned</div>
+        <div class="stat-value" id="statTotalEarned">$0.00</div>
+        <div class="stat-sub" id="statEarnedSub">Across all sales</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Orders</div>
+        <div class="stat-value" id="statOrders">0</div>
+        <div class="stat-sub">Completed sales</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Avg. order value</div>
+        <div class="stat-value" id="statAOV">$0.00</div>
+        <div class="stat-sub">Per transaction</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Products live</div>
+        <div class="stat-value" id="statProducts">0</div>
+        <div class="stat-sub">In your catalog</div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-head">
+        <h3>Recent orders</h3>
+        <button class="nav-link" style="color:var(--violet-bright); width:auto;" data-view="orders">View all →</button>
+      </div>
+      <div id="recentOrdersList"></div>
+    </div>
+  </main>
+
+  <!-- PRODUCTS -->
+  <main class="view hidden" id="view-products">
+    <div class="view-header">
+      <div>
+        <h2>Products</h2>
+        <p>Add and manage what your shop sells.</p>
+      </div>
+      <button class="btn btn-primary" id="openAddProduct">+ Add product</button>
+    </div>
+    <div id="productsWrap"></div>
+  </main>
+
+  <!-- ORDERS -->
+  <main class="view hidden" id="view-orders">
+    <div class="view-header">
+      <div>
+        <h2>Orders</h2>
+        <p>Every sale made through your storefront.</p>
+      </div>
+    </div>
+    <div class="panel"><div id="fullOrdersList"></div></div>
+  </main>
+
+  <!-- STOREFRONT (customer-facing) -->
+  <main class="view hidden" id="view-storefront">
+    <div class="storefront-hero" id="storeHero">
+      <div>
+        <h1 id="storeHeroName">Your Shop</h1>
+        <p>This is what customers see. Browse products and check out to simulate a real sale — it'll show up on your dashboard.</p>
+      </div>
+      <div style="font-size:64px;" id="storeHeroEmoji">🛍️</div>
+    </div>
+    <div id="storefrontWrap"></div>
+  </main>
+</div>
+
+<!-- Cart FAB -->
+<button class="cart-fab hidden" id="cartFab">
+  🛒
+  <span class="cart-count hidden" id="cartCount">0</span>
+</button>
+
+<!-- Add/Edit product modal -->
+<div class="modal-overlay hidden" id="productModalOverlay">
+  <div class="modal">
+    <div class="modal-head">
+      <h3 id="productModalTitle">Add product</h3>
+      <button class="close-x" id="closeProductModal">✕</button>
+    </div>
+    <div class="field">
+      <label>Icon</label>
+      <div class="emoji-picker" id="productEmojiPicker"></div>
+    </div>
+    <div class="field"><label for="pName">Product name</label><input id="pName" placeholder="e.g. Ceramic Mug"></div>
+    <div class="field"><label for="pPrice">Price (USD)</label><input id="pPrice" type="number" min="0" step="0.01" placeholder="24.00"></div>
+    <div class="field"><label for="pStock">Stock quantity</label><input id="pStock" type="number" min="0" step="1" placeholder="50"></div>
+    <div class="field"><label for="pDesc">Description (optional)</label><textarea id="pDesc" placeholder="Short description customers will see"></textarea></div>
+    <button class="btn btn-primary btn-block" id="saveProductBtn">Save product</button>
+  </div>
+</div>
+
+<!-- Cart modal -->
+<div class="modal-overlay hidden" id="cartModalOverlay">
+  <div class="modal">
+    <div class="modal-head">
+      <h3>Your cart</h3>
+      <button class="close-x" id="closeCartModal">✕</button>
+    </div>
+    <div id="cartLines"></div>
+    <div class="cart-total-row"><span>Total</span><span id="cartTotal">$0.00</span></div>
+    <button class="btn btn-primary btn-block" id="checkoutBtn" style="margin-top:14px;">Complete purchase</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"><span class="tick">✓</span><span id="toastMsg">Saved</span></div>
+
+<script>
+(function(){
+  const EMOJIS = ["🛍️","🧶","🍰","🕯️","📚","🎨","👕","💍","🪴","☕","🧴","🎧"];
+  let state = { shop: null, products: [], orders: [] };
+  let cart = {}; // productId -> qty
+  let editingProductId = null;
+  let selectedOnboardEmoji = EMOJIS[0];
+  let selectedProductEmoji = EMOJIS[0];
+
+  const $ = (sel) => document.querySelector(sel);
+  const $$ = (sel) => Array.from(document.querySelectorAll(sel));
+  const fmt = (n) => "$" + Number(n).toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2});
+
+  function showToast(msg){
+    const t = $("#toast");
+    $("#toastMsg").textContent = msg;
+    t.classList.add("show");
+    clearTimeout(showToast._tm);
+    showToast._tm = setTimeout(()=> t.classList.remove("show"), 2200);
+  }
+
+  function saveState(){
+    try{
+      localStorage.setItem('shopwave-state', JSON.stringify(state));
+    }catch(e){ console.error("Save failed", e); }
+  }
+
+  function loadState(){
+    try{
+      const raw = localStorage.getItem('shopwave-state');
+      if(raw) state = JSON.parse(raw);
+    }catch(e){ /* no existing state */ }
+  }
+
+  function uid(){ return Date.now().toString(36) + Math.random().toString(36).slice(2,7); }
+
+  /* ---------------- Onboarding ---------------- */
+  function buildEmojiPicker(container, onPick, selected){
+    container.innerHTML = "";
+    EMOJIS.forEach(e => {
+      const btn = document.createElement("button");
+      btn.className = "emoji-choice" + (e === selected ? " active" : "");
+      btn.type = "button";
+      btn.textContent = e;
+      btn.addEventListener("click", () => {
+        container.querySelectorAll(".emoji-choice").forEach(c => c.classList.remove("active"));
+        btn.classList.add("active");
+        onPick(e);
+      });
+      container.appendChild(btn);
+    });
+  }
+
+  buildEmojiPicker($("#emojiPicker"), (e)=> selectedOnboardEmoji = e, selectedOnboardEmoji);
+
+  $("#createShopBtn").addEventListener("click", () => {
+    const name = $("#shopName").value.trim();
+    const owner = $("#ownerName").value.trim();
+    if(!name){ $("#shopName").focus(); return; }
+    state.shop = { name, owner: owner || "Owner", emoji: selectedOnboardEmoji, created: Date.now() };
+    saveState();
+    enterApp();
+    showToast("Shop created — welcome to ShopWave!");
+  });
+
+  /* ---------------- App shell / nav ---------------- */
+  function enterApp(){
+    $("#onboarding").classList.add("hidden");
+    $("#app").classList.remove("hidden");
+    $("#cartFab").classList.remove("hidden");
+    $("#sbShopName").textContent = state.shop.name;
+    $("#sbOwnerName").textContent = state.shop.owner;
+    $("#sbAvatar").textContent = state.shop.emoji;
+    $("#dashShopName").textContent = state.shop.name;
+    $("#storeHeroName").textContent = state.shop.name;
+    $("#storeHeroEmoji").textContent = state.shop.emoji;
+    renderAll();
+  }
+
+  $$(".nav-link[data-view]").forEach(btn => {
+    btn.addEventListener("click", () => switchView(btn.dataset.view));
+  });
+  $$("button[data-view='products']").forEach(b=>{ if(!b.classList.contains('nav-link')) b.addEventListener("click", ()=> switchView('products')); });
+
+  function switchView(view){
+    $$(".view").forEach(v => v.classList.add("hidden"));
+    $("#view-" + view).classList.remove("hidden");
+    $$(".nav-link[data-view]").forEach(l => l.classList.toggle("active", l.dataset.view === view));
+    if(view === "dashboard") renderDashboard();
+    if(view === "products") renderProducts();
+    if(view === "orders") renderOrders();
+    if(view === "storefront") renderStorefront();
+  }
+
+  $("#resetShopBtn").addEventListener("click", () => {
+    if(!confirm("This will erase your shop, products, and orders. Continue?")) return;
+    state = { shop: null, products: [], orders: [] };
+    cart = {};
+    saveState();
+    location.reload();
+  });
+
+  /* ---------------- Dashboard ---------------- */
+  function renderDashboard(){
+    const total = state.orders.reduce((s,o)=> s + o.total, 0);
+    const count = state.orders.length;
+    const aov = count ? total / count : 0;
+    animateNumber($("#statTotalEarned"), total, true);
+    $("#statOrders").textContent = count;
+    $("#statAOV").textContent = fmt(aov);
+    $("#statProducts").textContent = state.products.length;
+    $("#statEarnedSub").textContent = count ? `From ${count} order${count===1?'':'s'}` : "No sales yet";
+
+    const list = $("#recentOrdersList");
+    const recent = [...state.orders].reverse().slice(0,5);
+    if(!recent.length){
+      list.innerHTML = `<div class="empty-state"><span class="emoji">🧾</span>No orders yet. Share your storefront to make your first sale.</div>`;
+      return;
+    }
+    list.innerHTML = recent.map(o => `
+      <div class="order-row">
+        <div>
+          <div>${o.items.length} item${o.items.length===1?'':'s'}</div>
+          <div class="oid">${new Date(o.date).toLocaleString()}</div>
+        </div>
+        <div class="amt">+${fmt(o.total)}</div>
+      </div>
+    `).join("");
+  }
+
+  function animateNumber(el, target, isCurrency){
+    const start = parseFloat((el.textContent||"0").replace(/[^0-9.]/g,"")) || 0;
+    const duration = 600;
+    const t0 = performance.now();
+    function step(t){
+      const p = Math.min(1, (t - t0) / duration);
+      const eased = 1 - Math.pow(1-p, 3);
+      const val = start + (target - start) * eased;
+      el.textContent = isCurrency ? fmt(val) : Math.round(val);
+      if(p < 1) requestAnimationFrame(step);
+    }
+    requestAnimationFrame(step);
+  }
+
+  /* ---------------- Products ---------------- */
+  function renderProducts(){
+    const wrap = $("#productsWrap");
+    if(!state.products.length){
+      wrap.innerHTML = `<div class="panel"><div class="empty-state"><span class="emoji">🏷️</span>No products yet. Add your first one to start selling.</div></div>`;
+      return;
+    }
+    wrap.innerHTML = `<div class="products-grid">${state.products.map(p => `
+      <div class="product-card">
+        <div class="product-thumb" style="background:${colorFor(p.id)}">${p.emoji}</div>
+        <div class="product-body">
+          <h4>${escapeHtml(p.name)}</h4>
+          <div class="product-price">${fmt(p.price)}</div>
+          <div class="product-stock">${p.stock} in stock</div>
+          <div class="product-actions">
+            <button class="btn btn-secondary btn-sm" data-edit="${p.id}">Edit</button>
+            <button class="btn btn-danger btn-sm" data-del="${p.id}">Delete</button>
+          </div>
+        </div>
+      </div>
+    `).join("")}</div>`;
+
+    wrap.querySelectorAll("[data-edit]").forEach(b => b.addEventListener("click", () => openProductModal(b.dataset.edit)));
+    wrap.querySelectorAll("[data-del]").forEach(b => b.addEventListener("click", () => {
+      if(!confirm("Delete this product?")) return;
+      state.products = state.products.filter(p => p.id !== b.dataset.del);
+      saveState();
+      renderProducts();
+      showToast("Product deleted");
+    }));
+  }
+
+  function colorFor(id){
+    const colors = ["#2A2450","#2F2140","#1F3350","#233F35","#402A28"];
+    let h = 0; for(const c of id) h += c.charCodeAt(0);
+    return colors[h % colors.length];
+  }
+  function escapeHtml(s){
+    const d = document.createElement("div"); d.textContent = s; return d.innerHTML;
+  }
+
+  $("#openAddProduct").addEventListener("click", () => openProductModal(null));
+  $("#closeProductModal").addEventListener("click", () => $("#productModalOverlay").classList.add("hidden"));
+
+  function openProductModal(id){
+    editingProductId = id;
+    const modal = $("#productModalOverlay");
+    modal.classList.remove("hidden");
+    if(id){
+      const p = state.products.find(x => x.id === id);
+      $("#productModalTitle").textContent = "Edit product";
+      $("#pName").value = p.name;
+      $("#pPrice").value = p.price;
+      $("#pStock").value = p.stock;
+      $("#pDesc").value = p.desc || "";
+      selectedProductEmoji = p.emoji;
+    } else {
+      $("#productModalTitle").textContent = "Add product";
+      $("#pName").value = ""; $("#pPrice").value = ""; $("#pStock").value = ""; $("#pDesc").value = "";
+      selectedProductEmoji = EMOJIS[Math.floor(Math.random()*EMOJIS.length)];
+    }
+    buildEmojiPicker($("#productEmojiPicker"), (e)=> selectedProductEmoji = e, selectedProductEmoji);
+  }
+
+  $("#saveProductBtn").addEventListener("click", () => {
+    const name = $("#pName").value.trim();
+    const price = parseFloat($("#pPrice").value);
+    const stock = parseInt($("#pStock").value || "0", 10);
+    const desc = $("#pDesc").value.trim();
+    if(!name || isNaN(price) || price < 0){ showToast("Add a name and valid price"); return; }
+    if(editingProductId){
+      const p = state.products.find(x => x.id === editingProductId);
+      Object.assign(p, { name, price, stock: isNaN(stock)?0:stock, desc, emoji: selectedProductEmoji });
+      showToast("Product updated");
+    } else {
+      state.products.push({ id: uid(), name, price, stock: isNaN(stock)?0:stock, desc, emoji: selectedProductEmoji });
+      showToast("Product added");
+    }
+    saveState();
+    $("#productModalOverlay").classList.add("hidden");
+    renderProducts();
+    renderDashboard();
+  });
+
+  /* ---------------- Orders ---------------- */
+  function renderOrders(){
+    const list = $("#fullOrdersList");
+    if(!state.orders.length){
+      list.innerHTML = `<div class="empty-state"><span class="emoji">🧾</span>No orders yet.</div>`;
+      return;
+    }
+    list.innerHTML = [...state.orders].reverse().map(o => `
+      <div class="order-row">
+        <div>
+          <div>${o.items.map(i => `${i.qty}× ${escapeHtml(i.name)}`).join(", ")}</div>
+          <div class="oid">${new Date(o.date).toLocaleString()} · <span class="badge">Paid</span></div>
+        </div>
+        <div class="amt">+${fmt(o.total)}</div>
+      </div>
+    `).join("");
+  }
+
+  /* ---------------- Storefront ---------------- */
+  function renderStorefront(){
+    const wrap = $("#storefrontWrap");
+    if(!state.products.length){
+      wrap.innerHTML = `<div class="panel"><div class="empty-state"><span class="emoji">🌐</span>Add products to see your storefront come alive.</div></div>`;
+      return;
+    }
+    wrap.innerHTML = `<div class="storefront-grid">${state.products.map(p => `
+      <div class="storefront-card">
+        <div class="product-thumb" style="background:${colorFor(p.id)}">${p.emoji}</div>
+        <div class="product-body">
+          <h4>${escapeHtml(p.name)}</h4>
+          ${p.desc ? `<div class="product-stock">${escapeHtml(p.desc)}</div>` : ""}
+          <div class="product-price">${fmt(p.price)}</div>
+          <button class="btn btn-primary btn-sm add-btn" data-add="${p.id}" ${p.stock<=0 ? "disabled style='opacity:.5;cursor:not-allowed;'" : ""}>
+            ${p.stock<=0 ? "Out of stock" : "Add to cart"}
+          </button>
+        </div>
+      </div>
+    `).join("")}</div>`;
+    wrap.querySelectorAll("[data-add]").forEach(b => b.addEventListener("click", () => addToCart(b.dataset.add)));
+  }
+
+  const heroPalette = ["linear-gradient(135deg,#FFD23F,#FF9F6B)","linear-gradient(135deg,#00D9A3,#7CE8C5)","linear-gradient(135deg,#9B85FF,#FF9AD5)"];
+  function setHero(){
+    $("#storeHero").style.background = heroPalette[Math.floor(Math.random()*heroPalette.length)];
+  }
+
+  /* ---------------- Cart ---------------- */
+  function addToCart(id){
+    cart[id] = (cart[id] || 0) + 1;
+    updateCartCount();
+    showToast("Added to cart");
+  }
+
+  function updateCartCount(){
+    const count = Object.values(cart).reduce((a,b)=>a+b,0);
+    const el = $("#cartCount");
+    if(count > 0){ el.textContent = count; el.classList.remove("hidden"); }
+    else el.classList.add("hidden");
+  }
+
+  $("#cartFab").addEventListener("click", () => { renderCart(); $("#cartModalOverlay").classList.remove("hidden"); });
+  $("#closeCartModal").addEventListener("click", () => $("#cartModalOverlay").classList.add("hidden"));
+
+  function renderCart(){
+    const lines = $("#cartLines");
+    const ids = Object.keys(cart).filter(id => cart[id] > 0);
+    if(!ids.length){
+      lines.innerHTML = `<div class="empty-state"><span class="emoji">🛒</span>Your cart is empty. Visit the storefront to add products.</div>`;
+      $("#cartTotal").textContent = fmt(0);
+      return;
+    }
+    let total = 0;
+    lines.innerHTML = ids.map(id => {
+      const p = state.products.find(x => x.id === id);
+      if(!p) return "";
+      const lineTotal = p.price * cart[id];
+      total += lineTotal;
+      return `
+        <div class="cart-line">
+          <div class="ci-thumb">${p.emoji}</div>
+          <div class="ci-info">
+            <div class="n">${escapeHtml(p.name)}</div>
+            <div class="p">${fmt(p.price)} each</div>
+          </div>
+          <div class="qty-ctrl">
+            <button data-dec="${id}">−</button>
+            <span>${cart[id]}</span>
+            <button data-inc="${id}">+</button>
+          </div>
+        </div>`;
+    }).join("");
+    $("#cartTotal").textContent = fmt(total);
+    lines.querySelectorAll("[data-inc]").forEach(b => b.addEventListener("click", () => { cart[b.dataset.inc]++; renderCart(); updateCartCount(); }));
+    lines.querySelectorAll("[data-dec]").forEach(b => b.addEventListener("click", () => {
+      cart[b.dataset.dec]--; if(cart[b.dataset.dec] <= 0) delete cart[b.dataset.dec];
+      renderCart(); updateCartCount();
+    }));
+  }
+
+  $("#checkoutBtn").addEventListener("click", () => {
+    const ids = Object.keys(cart).filter(id => cart[id] > 0);
+    if(!ids.length){ showToast("Your cart is empty"); return; }
+    const items = [];
+    let total = 0;
+    ids.forEach(id => {
+      const p = state.products.find(x => x.id === id);
+      if(!p) return;
+      const qty = Math.min(cart[id], p.stock);
+      if(qty <= 0) return;
+      p.stock -= qty;
+      total += p.price * qty;
+      items.push({ productId: id, name: p.name, qty, price: p.price });
+    });
+    if(!items.length){ showToast("Items are out of stock"); return; }
+    state.orders.push({ id: uid(), items, total, date: Date.now() });
+    cart = {};
+    saveState();
+    updateCartCount();
+    $("#cartModalOverlay").classList.add("hidden");
+    showToast(`Sale complete — ${fmt(total)} earned!`);
+    renderDashboard();
+    renderStorefront();
+  });
+
+  document.querySelectorAll(".modal-overlay").forEach(ov => {
+    ov.addEventListener("click", (e) => { if(e.target === ov) ov.classList.add("hidden"); });
+  });
+
+  function renderAll(){
+    setHero();
+    renderDashboard();
+    renderProducts();
+    renderOrders();
+    renderStorefront();
+    updateCartCount();
+  }
+
+  /* ---------------- Boot ---------------- */
+  loadState();
+  if(state.shop){
+    enterApp();
+  }
+})();
+</script>
+</body>
+</html>
